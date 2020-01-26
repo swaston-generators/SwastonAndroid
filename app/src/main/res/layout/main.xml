@@ -32,7 +32,6 @@
                     android:gravity="center"
                     android:clickable="true"
                     android:focusable="true"
-                    android:typeface="monospace"
                     android:text="" />
             </ScrollView>
         </HorizontalScrollView>

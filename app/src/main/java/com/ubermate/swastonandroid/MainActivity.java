@@ -45,6 +45,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         textView = findViewById(R.id.output);
+        textView.setTypeface(Typeface.MONOSPACE);
 
         textView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
