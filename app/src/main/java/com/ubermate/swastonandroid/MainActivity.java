@@ -94,7 +94,12 @@ public class MainActivity extends Activity {
         FloatingActionButton copyButton = findViewById(R.id.copy);
         copyButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                setClipboard(mContext, mTextView.getText().toString());
+                String text = mTextView.getText().toString();
+                if (text.isEmpty()) {
+                    return;
+                }
+
+                setClipboard(mContext, text);
                 view.setRotation(0);
                 view.animate()
                         .rotationBy(360)
