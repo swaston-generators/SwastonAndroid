@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.LinearInterpolator;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,15 +23,17 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 public class MainActivity extends Activity {
 
     private TextView mTextView;
-    private final Context mContext = this;
+    private Context mContext;
     private Toast mToast;
+    private ClipboardManager mClipboard;
 
-    private void setClipboard(Context context, String text) {
 
-        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-        ClipData clip = ClipData.newPlainText("Copied Text", text);
-        if (clipboard != null) {
-            clipboard.setPrimaryClip(clip);
+    HorizontalScrollView mHorizontalScrollView;
+
+    private void setClipboard(String text) {
+        if (mClipboard != null) {
+            ClipData clip = ClipData.newPlainText("Copied Text", text);
+            mClipboard.setPrimaryClip(clip);
             if (mToast.getView().getWindowVisibility() != View.VISIBLE) {
                 mToast.show();
             }
@@ -39,9 +42,10 @@ public class MainActivity extends Activity {
     }
 
     private void textViewResetCurrentPosition() {
-        mTextView.setRotation(0);
-        mTextView.setRotationX(0);
-        mTextView.setRotationY(0);
+        mHorizontalScrollView.clearAnimation();
+        mHorizontalScrollView.setRotation(0);
+        mHorizontalScrollView.setRotationX(0);
+        mHorizontalScrollView.setRotationY(0);
     }
 
     @SuppressLint("ShowToast")
@@ -49,28 +53,29 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-
+        mContext = getApplicationContext();
         mToast = Toast.makeText(mContext, "Copied!", Toast.LENGTH_SHORT);
+        mClipboard = (ClipboardManager) mContext.getSystemService(Context.CLIPBOARD_SERVICE);
         mTextView = findViewById(R.id.output);
         mTextView.setTypeface(Typeface.MONOSPACE); // WON'T work inside xml for some old abis
-
+        mHorizontalScrollView = findViewById(R.id.text_scroll_view);
         mTextView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(final View view) {
                 textViewResetCurrentPosition();
-                view.animate()
+                mHorizontalScrollView.animate()
                         .rotationBy(-75)
                         .setInterpolator(new DecelerateInterpolator(1))
                         .setDuration(1000).withEndAction(
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                view.animate()
-                                        .rotationBy((360 * 8) + 75)
-                                        .setInterpolator(new DecelerateInterpolator(2))
-                                        .setDuration(1100);
-                            }
-                        });
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mHorizontalScrollView.animate()
+                                                .rotationBy((360 * 8) + 75)
+                                                .setInterpolator(new DecelerateInterpolator(2))
+                                                .setDuration(1100);
+                                    }
+                                });
                 return true;
             }
         });
@@ -79,7 +84,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 textViewResetCurrentPosition();
-                mTextView.animate()
+                mHorizontalScrollView.animate()
                         .rotationYBy(-360)
                         .rotationBy(360)
                         .setInterpolator(new LinearInterpolator())
@@ -91,7 +96,7 @@ public class MainActivity extends Activity {
         EditText editText = findViewById(R.id.input);
 
 
-        FloatingActionButton copyButton = findViewById(R.id.copy);
+        final FloatingActionButton copyButton = findViewById(R.id.copy);
         copyButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 String text = mTextView.getText().toString();
@@ -99,7 +104,7 @@ public class MainActivity extends Activity {
                     return;
                 }
 
-                setClipboard(mContext, text);
+                setClipboard(text);
                 view.setRotation(0);
                 view.animate()
                         .rotationBy(360)
@@ -112,15 +117,21 @@ public class MainActivity extends Activity {
 
             public void afterTextChanged(Editable s) {
                 textViewResetCurrentPosition();
-                mTextView.setAlpha(0);
-                mTextView.setRotation(180);
-                mTextView.animate()
+                mHorizontalScrollView.setAlpha(0);
+                mHorizontalScrollView.setRotation(180);
+                mHorizontalScrollView.animate()
                         .alpha(1)
                         .rotationBy(180)
                         .setDuration(450);
 
+                boolean empty = s.toString().isEmpty();
+                copyButton.setClickable(!empty);
+                if (empty) {
+                    if (mClipboard != null && copyButton.isOrWillBeShown()) copyButton.hide();
+                } else {
+                    if (mClipboard != null && copyButton.isOrWillBeHidden()) copyButton.show();
+                }
                 mTextView.setText(SwastonGenerator.FromString(s.toString()));
-
             }
 
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {

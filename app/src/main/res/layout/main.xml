@@ -12,6 +12,7 @@
 
 
         <HorizontalScrollView
+            android:id="@+id/text_scroll_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fillViewport="true"
@@ -58,6 +59,7 @@
             android:layout_marginEnd="40dp"
             android:layout_marginBottom="40dp"
             android:src="@drawable/ic_content_copy_black_24dp"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
